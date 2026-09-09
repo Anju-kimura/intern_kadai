@@ -4,7 +4,8 @@ FROM php:7.3-apache
 COPY ./docker/php.ini /usr/local/etc/php/
 
 # 必要なパッケージと拡張機能をインストール
-RUN apt-get update && \
+RUN sed -i '/security.debian.org/d' /etc/apt/sources.list && \
+    apt-get update -o Acquire::Check-Valid-Until=false && \
     apt-get install -y \
     git \
     unzip \
