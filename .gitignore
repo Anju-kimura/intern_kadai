@@ -1,0 +1,6 @@
+fuel/app/config/development/migrations.php
+fuel/app/logs/*
+!fuel/app/logs/.gitkeep
+
+public/uploads/*
+!public/uploads/.gitkeep
