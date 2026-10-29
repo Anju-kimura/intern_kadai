@@ -8,3 +8,5 @@ public/uploads/*
 fuel/app/config/development/auth.php
 fuel/app/config/development/simpleauth.php
 fuel/app/config/development/config.php
+
+fuel/app/config/crypt.php
