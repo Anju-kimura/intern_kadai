@@ -52,3 +52,31 @@ body {
   border-radius: 2px;
 }
 .form-error { color: var(--color-error); font-size: 13px; }
+
+.color-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-dot {
+  cursor: pointer;
+}
+
+.color-dot input {
+  position: absolute;
+  opacity: 0;
+}
+
+.color-dot span {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+}
+
+.color-dot input:checked + span {
+  border-color: #333;
+  box-shadow: 0 0 0 2px #fff inset;
+}
