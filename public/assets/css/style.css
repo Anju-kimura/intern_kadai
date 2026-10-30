@@ -1,0 +1,54 @@
+:root {
+  --color-header: #AACDD1;   /* ヘッダーの薄い青緑 */
+  --color-main:   #0F5A5E;   /* ボタンや文字の濃い青緑 */
+  --color-text:   #1F2D2E;
+  --color-border: #B7D3D6;
+  --color-error:  #C62828;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--color-text);
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+
+.site-header { background: var(--color-header); }
+.site-header__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.site-header__logo { color: var(--color-main); font-size: 24px; font-weight: bold; }
+.site-header__user { margin-left: auto; }
+.site-header a { color: var(--color-main); }
+
+.container { max-width: 960px; margin: 0 auto; padding: 24px; }
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--color-main);
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.form-field { margin-bottom: 20px; }
+.form-field label { display: block; margin-bottom: 6px; font-size: 14px; }
+.form-field input[type="text"],
+.form-field input[type="email"],
+.form-field input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--color-main);
+  border-radius: 2px;
+}
+.form-error { color: var(--color-error); font-size: 13px; }
