@@ -68,4 +68,46 @@ class Controller_User extends Controller_Base
             ->add_rule('required')->add_rule('match_field', 'password');
         return $val;
     }
+
+     // ログイン画面を表示する
+    public function get_login()
+    {
+        $this->show_login('', '');
+    }
+
+    // ログインフォームの送信を受け取る
+    public function post_login()
+    {
+        $email = \Input::post('email', '');
+        $password = \Input::post('password', '');
+
+        if ($email === '' or $password === '') {
+          $this->show_login('メールアドレスとパスワードを入力してください', $email);
+          return;
+     }
+
+     if ( ! \Auth::login($email, $password)) {
+         $this->show_login('メールアドレスまたはパスワードが違います', $email);
+         return;
+        }
+
+     \Session::instance()->rotate();    // ログイン成功のあと、セッションIDを新しくする
+     \Response::redirect('clothes');
+    }
+
+    // ログアウトして、ログイン画面へ戻る
+    public function action_logout()
+    {
+        \Auth::logout();
+        \Response::redirect('user/login');
+    }
+
+    private function show_login($error, $email)
+    {
+        $this->template->title = 'ログイン';
+        $this->template->content = \View::forge('user/login', array(
+            'error' => $error,
+            'email' => $email,
+        ));
+    }
 }
