@@ -2,10 +2,19 @@
 
 class Controller_Clothes extends Controller_Base
 {
+    // 衣類一覧を表示する
     public function get_index()
     {
+        $items = array();
+        foreach (\Model_Clothes::get_list($this->user_id) as $row) {
+            $items[] = $this->present($row);
+        }
+
         $this->template->title = '衣類一覧';
-        $this->template->content = '準備中です';
+        $this->template->content = \View::forge('clothes/index', array(
+            'items'      => $items,
+            'categories' => \Config::get('closet.categories'),
+        ));
     }
 
     // 登録フォームを表示する
@@ -88,5 +97,27 @@ class Controller_Clothes extends Controller_Base
         $allowed = array_keys(\Config::get('closet.seasons'));
 
         return count(array_diff($seasons, $allowed)) === 0;
+    }
+
+    // DBの値を、画面に出す形に整える（一覧・詳細・Step 8のJSONで使い回す）
+    private function present(array $row, array $seasons = array())
+    {
+        $categories    = \Config::get('closet.categories');
+        $colors        = \Config::get('closet.colors');
+        $season_labels = \Config::get('closet.seasons');
+
+        return array(
+            'id'             => $row['id'],
+            'name'           => $row['name'],
+            'category_label' => $categories[$row['category']],
+            'brand'          => $row['brand'] ?: '未設定',
+            'color_name'     => $colors[$row['color']][0],
+            'color_css'      => $colors[$row['color']][1],
+            'purchase'       => $row['purchase_date'] ? date('Y年n月', strtotime($row['purchase_date'])) : '不明',
+            'seasons'        => implode('・', array_map(function ($season) use ($season_labels) {
+                return $season_labels[$season];
+            }, $seasons)),
+            'image_url'      => $row['image_path'] ? \Uri::base(false).'uploads/'.$row['image_path'] : '',
+        );
     }
 }
