@@ -4,7 +4,7 @@
     <p class="error"><?php echo $message; ?></p>
 <?php endforeach; ?>
 
-<?php echo \Form::open(array('action' => 'clothes/create')); ?>
+<?php echo \Form::open(array('action' => 'clothes/create', 'enctype' => 'multipart/form-data')); ?>
 
     <div class="form-row">
         <label for="name">名称（必須）</label>
@@ -61,6 +61,14 @@
     <div class="form-row">
         <label for="memo">メモ</label>
         <textarea id="memo" name="memo" rows="4" maxlength="500"><?php echo isset($old['memo']) ? $old['memo'] : ''; ?></textarea>
+    </div>
+
+    <div class="form-row">
+        <label for="image">画像（任意）</label>
+        <input type="file" id="image" name="image" accept="image/*">
+        <?php if (!empty($image_error)): ?>
+          <p class="error"><?php echo $image_error; ?></p>
+        <?php endif; ?>
     </div>
 
     <button type="submit" class="btn">登録する</button>
