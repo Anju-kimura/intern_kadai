@@ -15,6 +15,7 @@ class Model_Clothes
                 'color'         => $data['color'],
                 'purchase_date' => $data['purchase_date'],
                 'memo'          => $data['memo'],
+                'image_path'    => $data['image_path'],
             ))->execute();
 
             foreach ($seasons as $season) {
@@ -32,7 +33,7 @@ class Model_Clothes
         return $clothing_id;
     }
 
-        // 自分の衣類だけ、削除済みを除いて、新しい順に取得する
+    // 自分の衣類だけ、削除済みを除いて、新しい順に取得する
     public static function get_list($user_id)
     {
         return \DB::select()->from('clothes')
