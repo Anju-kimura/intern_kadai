@@ -31,4 +31,14 @@ class Model_Clothes
 
         return $clothing_id;
     }
+
+        // 自分の衣類だけ、削除済みを除いて、新しい順に取得する
+    public static function get_list($user_id)
+    {
+        return \DB::select()->from('clothes')
+            ->where('user_id', $user_id)
+            ->where('deleted_at', 'is', null)
+            ->order_by('created_at', 'desc')
+            ->execute()->as_array();
+    }
 }
