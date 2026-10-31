@@ -46,11 +46,18 @@ class Controller_Clothes extends Controller_Base
             $data['purchase_date'] = null;
         }
 
+        list($image_path, $image_error) = $this->save_image();
+        if ($image_error !== '') {
+            $this->show_form(array(), $input, $image_error);
+            return;
+        }
+        $data['image_path'] = $image_path;
+
         \Model_Clothes::create($this->user_id, $data, array_unique($seasons));
         \Response::redirect('clothes');
     }
 
-    private function show_form(array $errors, array $old)
+    private function show_form(array $errors, array $old, $image_error = '')
     {
         $this->template->title = '衣類を登録する';
         $this->template->content = \View::forge('clothes/form', array(
@@ -59,6 +66,7 @@ class Controller_Clothes extends Controller_Base
             'categories' => \Config::get('closet.categories'),
             'colors'     => \Config::get('closet.colors'),
             'seasons'    => \Config::get('closet.seasons'),
+            'image_error' => $image_error,
         ));
     }
 
@@ -119,5 +127,38 @@ class Controller_Clothes extends Controller_Base
             }, $seasons)),
             'image_url'      => $row['image_path'] ? \Uri::base(false).'uploads/'.$row['image_path'] : '',
         );
+    }
+
+    // 画像を保存する。戻り値: array(保存したファイル名 または null, エラーメッセージ)
+    private function save_image()
+    {
+        $file = \Input::file('image');
+        if ($file === null || $file['error'] === UPLOAD_ERR_NO_FILE) {
+            return array(null, '');   // 画像は任意なので、選ばなければ何もしない
+        }
+
+        $up = \Config::get('closet.upload');
+        $message = '画像は、'.implode('・', $up['extensions']).'形式の、'
+            .round($up['max_size'] / 1024 / 1024).'MB以内のファイルを選んでください';
+
+        \Upload::process(array(
+            'path'           => $up['path'],
+            'ext_whitelist'  => $up['extensions'],
+            'mime_whitelist' => $up['mimes'],
+            'max_size'       => $up['max_size'],
+            'randomize'      => true,   // 保存ファイル名をランダムにする
+        ));
+
+        if (!\Upload::is_valid()) {
+            return array(null, $message);
+        }
+
+        \Upload::save();
+        $files = \Upload::get_files();
+        if (empty($files[0]['saved_as'])) {
+            return array(null, '画像を保存できませんでした');
+        }
+
+        return array($files[0]['saved_as'], '');
     }
 }
