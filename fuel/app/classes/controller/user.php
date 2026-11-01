@@ -51,6 +51,7 @@ class Controller_User extends Controller_Base
             return;
         }
 
+        \Session::set_flash('success', '登録が完了しました。ログインしてください');
         \Response::redirect('user/login');
     }
 
@@ -109,6 +110,7 @@ class Controller_User extends Controller_Base
     public function post_logout()
     {
         \Auth::logout();
+        \Session::set_flash('success', 'ログアウトしました');
         \Response::redirect('user/login');
     }
 

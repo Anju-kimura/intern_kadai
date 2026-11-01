@@ -63,6 +63,7 @@ class Controller_Clothes extends Controller_Base
             throw new \HttpNotFoundException;
         }
 
+        \Session::set_flash('success', '削除しました');
         \Response::redirect('clothes');
     }
 
@@ -96,6 +97,9 @@ class Controller_Clothes extends Controller_Base
             $data['image_path'] = $image_path;
             $new_id = \Model_Clothes::create($this->user_id, $data, $seasons);
 
+            // 移動先の画面で、1回だけ表示する
+            \Session::set_flash('success', '登録しました');
+
             return $this->json(array('ok' => true, 'id' => $new_id));
         }
 
@@ -107,6 +111,8 @@ class Controller_Clothes extends Controller_Base
         if ($image_path !== null) {
             $this->delete_image($row['image_path']);
         }
+
+        \Session::set_flash('success', '更新しました');
 
         return $this->json(array('ok' => true, 'id' => $row['id']));
     }

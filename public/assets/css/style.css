@@ -27,6 +27,14 @@ body {
 .site-header__logo { color: var(--color-main); font-size: 24px; font-weight: bold; }
 .site-header__user { margin-left: auto; }
 .site-header a { color: var(--color-main); }
+.flash {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: #EAF4F5;
+  color: var(--color-main);
+}
 .logout-form { display: inline; }
 .link-button {
   background: none;
