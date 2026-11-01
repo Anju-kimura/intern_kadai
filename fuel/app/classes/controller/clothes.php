@@ -37,21 +37,107 @@ class Controller_Clothes extends Controller_Base
         $this->show_form(array(), array());
     }
 
-    // 登録フォームの送信を受け取る
+        // 登録フォームの送信を受け取る
     public function post_create()
     {
-        $input   = \Input::post();
-        $seasons = \Input::post('seasons', array());
-
-        $val = $this->validation();
-        if ( ! $val->run()) {
-            $this->show_form($val->error_message(), $input);
+        list($data, $errors) = $this->read_input();
+        if (count($errors) > 0) {
+            $this->show_form($errors, \Input::post());
             return;
         }
 
-        if ( ! $this->valid_seasons($seasons)) {
-            $this->show_form(array('seasons' => '季節の指定が正しくありません'), $input);
+        list($image_path, $image_error) = $this->save_image();
+        if ($image_error !== '') {
+            $this->show_form(array(), \Input::post(), $image_error);
             return;
+        }
+        $data['image_path'] = $image_path;
+
+        \Model_Clothes::create($this->user_id, $data, array_unique(\Input::post('seasons', array())));
+        \Response::redirect('clothes');
+    }
+
+        // 編集フォームを表示する
+    public function get_edit($id = null)
+    {
+        $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
+        if ($row === null) {
+            throw new \HttpNotFoundException;
+        }
+
+        $this->show_form(array(), $this->form_values($row), '', $row['id']);
+    }
+
+    // 編集フォームの送信を受け取る
+    public function post_edit($id = null)
+    {
+        $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
+        if ($row === null) {
+            throw new \HttpNotFoundException;
+        }
+
+        list($data, $errors) = $this->read_input();
+        if (count($errors) > 0) {
+            $this->show_form($errors, \Input::post(), '', $row['id']);
+            return;
+        }
+
+        list($image_path, $image_error) = $this->save_image();
+        if ($image_error !== '') {
+            $this->show_form(array(), \Input::post(), $image_error, $row['id']);
+            return;
+        }
+        // 画像を選ばなかったときは、元の画像のままにする
+        $data['image_path'] = $image_path !== null ? $image_path : $row['image_path'];
+
+        \Model_Clothes::update($row['id'], $this->user_id, $data, array_unique(\Input::post('seasons', array())));
+        \Response::redirect('clothes/view/'.$row['id']);
+    }
+
+    // DBの1行を、フォームの初期値の形（送信されたときと同じキー）に直す
+    private function form_values(array $row)
+    {
+        return array(
+            'name'             => $row['name'],
+            'category'         => $row['category'],
+            'brand'            => (string) $row['brand'],
+            'color'            => $row['color'],
+            'purchase_date'    => (string) $row['purchase_date'],
+            'purchase_unknown' => $row['purchase_date'] === null ? '1' : '',
+            'memo'             => (string) $row['memo'],
+            'seasons'          => \Model_Clothes::get_seasons($row['id']),
+        );
+    }
+
+    private function show_form(array $errors, array $old, $image_error = '', $id = null)
+    {
+        $is_edit = $id !== null;
+
+        $this->template->title = $is_edit ? '衣類を編集' : '衣類を登録する';
+        $this->template->content = \View::forge('clothes/form', array(
+            'errors'       => $errors,
+            'old'          => $old,
+            'categories'   => \Config::get('closet.categories'),
+            'colors'       => \Config::get('closet.colors'),
+            'seasons'      => \Config::get('closet.seasons'),
+            'image_error'  => $image_error,
+            'is_edit'      => $is_edit,
+            'heading'      => $is_edit ? '衣類を編集' : '衣類を登録する',
+            'action'       => $is_edit ? 'clothes/edit/'.$id : 'clothes/create',
+            'submit_label' => $is_edit ? '更新' : '登録',
+            'cancel_url'   => $is_edit ? 'clothes/view/'.$id : 'clothes',
+        ));
+    }
+
+    // 登録・編集で共通の入力チェック。戻り値: array(検証済みの値, エラーの配列)
+    private function read_input()
+    {
+        $val = $this->validation();
+        if ( ! $val->run()) {
+            return array(array(), $val->error_message());
+        }
+        if ( ! $this->valid_seasons(\Input::post('seasons', array()))) {
+            return array(array(), array('seasons' => '季節の指定が正しくありません'));
         }
 
         $data = $val->validated();
@@ -60,28 +146,7 @@ class Controller_Clothes extends Controller_Base
             $data['purchase_date'] = null;
         }
 
-        list($image_path, $image_error) = $this->save_image();
-        if ($image_error !== '') {
-            $this->show_form(array(), $input, $image_error);
-            return;
-        }
-        $data['image_path'] = $image_path;
-
-        \Model_Clothes::create($this->user_id, $data, array_unique($seasons));
-        \Response::redirect('clothes');
-    }
-
-    private function show_form(array $errors, array $old, $image_error = '')
-    {
-        $this->template->title = '衣類を登録する';
-        $this->template->content = \View::forge('clothes/form', array(
-            'errors'     => $errors,
-            'old'        => $old,
-            'categories' => \Config::get('closet.categories'),
-            'colors'     => \Config::get('closet.colors'),
-            'seasons'    => \Config::get('closet.seasons'),
-            'image_error' => $image_error,
-        ));
+        return array($data, array());
     }
 
     private function validation()
