@@ -324,10 +324,14 @@ class Controller_Clothes extends Controller_Base
         }
     }
 
-    // JSONのレスポンスを作る。CSRFトークンは、毎回最新のものを添える
+    // JSONのレスポンスを作る。POSTのときは、CSRFトークンの最新のものを添える
     private function json(array $body, $status = 200)
     {
-        $body['token'] = \Security::fetch_token();
+        // GETでトークンを取り出すと、新しいトークンに作り直され、
+        // 画面にあるフォーム(ログアウトなど)のトークンが使えなくなる
+        if (\Input::method() === 'POST') {
+            $body['token'] = \Security::fetch_token();
+        }
 
         return \Response::forge(json_encode($body), $status, array('Content-Type' => 'application/json'));
     }
