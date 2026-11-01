@@ -81,7 +81,7 @@
         </div>
 
         <div class="detail-actions">
-            <button type="submit" class="btn" data-bind="enable: !submitting()"><?php echo $submit_label; ?></button>
+            <button type="submit" class="btn" data-bind="enable: !submitting(), text: submitting() ? '保存中…' : '<?php echo $submit_label; ?>'"><?php echo $submit_label; ?></button>
             <a class="btn" href="<?php echo $back_url; ?>">キャンセル</a>
         </div>
     </form>
