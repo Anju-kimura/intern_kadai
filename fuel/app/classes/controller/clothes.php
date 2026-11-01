@@ -2,18 +2,26 @@
 
 class Controller_Clothes extends Controller_Base
 {
-    // 衣類一覧を表示する
+   // 衣類一覧を表示する（絞り込み・並び替え付き）
     public function get_index()
     {
+        $filters = $this->read_filters();
+
         $items = array();
-        foreach (\Model_Clothes::get_list($this->user_id) as $row) {
+        foreach (\Model_Clothes::search($this->user_id, $filters) as $row) {
             $items[] = $this->present($row);
         }
 
         $this->template->title = '衣類一覧';
         $this->template->content = \View::forge('clothes/index', array(
-            'items'      => $items,
-            'categories' => \Config::get('closet.categories'),
+            'items'       => $items,
+            'filters'     => $filters,
+            'chips'       => $this->category_chips($filters),
+            'colors'      => \Config::get('closet.colors'),
+            'seasons'     => \Config::get('closet.seasons'),
+            'periods'     => $this->period_options(),
+            'is_filtered' => $filters['category'] !== '' || $filters['color'] !== ''
+                || $filters['period'] !== '' || count($filters['seasons']) > 0,
         ));
     }
 
@@ -194,6 +202,59 @@ class Controller_Clothes extends Controller_Base
         $allowed = array_keys(\Config::get('closet.seasons'));
 
         return count(array_diff($seasons, $allowed)) === 0;
+    }
+
+        // URLのパラメータを検証して、検索条件にする。configにない値は、無視する（条件なし）
+    private function read_filters()
+    {
+        $seasons = \Input::get('seasons', array());
+        $seasons = is_array($seasons) ? array_filter($seasons, 'is_string') : array();
+
+        return array(
+            'category' => $this->allowed_key(\Input::get('category'), \Config::get('closet.categories')),
+            'color'    => $this->allowed_key(\Input::get('color'), \Config::get('closet.colors')),
+            // configの順に並べて、許可された季節だけを残す
+            'seasons'  => array_values(array_intersect(array_keys(\Config::get('closet.seasons')), $seasons)),
+                        'period'   => $this->allowed_key(\Input::get('period'), $this->period_options()),
+            'sort'     => \Input::get('sort') === 'asc' ? 'asc' : 'desc',
+        );
+    }
+
+    // 値が、許可された配列のキーならそのまま返し、そうでなければ空文字にする
+    private function allowed_key($value, array $allowed)
+    {
+        return (is_string($value) && array_key_exists($value, $allowed)) ? $value : '';
+    }
+
+    // 購入時期の選択肢。「すべて」は、条件なし（空文字）で表すので、allを除く
+    private function period_options()
+    {
+        $periods = \Config::get('closet.periods');
+        unset($periods['all']);
+
+        return $periods;
+    }
+
+    // カテゴリのボタンを作る。ほかの条件は保ったまま、カテゴリだけを切り替えるリンクにする
+    private function category_chips(array $filters)
+    {
+        $options = array('' => 'すべて') + \Config::get('closet.categories');
+
+        $chips = array();
+        foreach ($options as $key => $label) {
+            $params = array_merge($filters, array('category' => $key));
+            $params = array_filter($params, function ($value) {
+                return $value !== '' && $value !== array();
+            });
+
+            $chips[] = array(
+                'label'  => $label,
+                'url'    => \Uri::create('clothes', array(), $params),
+                'active' => $filters['category'] === (string) $key,
+            );
+        }
+
+        return $chips;
     }
 
     // DBの値を、画面に出す形に整える（一覧・詳細・Step 8のJSONで使い回す）
