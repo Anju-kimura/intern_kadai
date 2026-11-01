@@ -22,11 +22,7 @@ class Controller_Clothes extends Controller_Base
             $items[] = $this->present($row);
         }
 
-        return \Response::forge(
-            json_encode(array('count' => count($items), 'items' => $items)),
-            200,
-            array('Content-Type' => 'application/json')
-        );
+        return $this->json(array('count' => count($items), 'items' => $items));
     }
 
     // 衣類の詳細を表示する
@@ -46,30 +42,10 @@ class Controller_Clothes extends Controller_Base
     // 登録フォームを表示する
     public function get_create()
     {
-        $this->show_form(array(), array());
+        $this->show_form();
     }
 
-        // 登録フォームの送信を受け取る
-    public function post_create()
-    {
-        list($data, $errors) = $this->read_input();
-        if (count($errors) > 0) {
-            $this->show_form($errors, \Input::post());
-            return;
-        }
-
-        list($image_path, $image_error) = $this->save_image();
-        if ($image_error !== '') {
-            $this->show_form(array(), \Input::post(), $image_error);
-            return;
-        }
-        $data['image_path'] = $image_path;
-
-        \Model_Clothes::create($this->user_id, $data, array_unique(\Input::post('seasons', array())));
-        \Response::redirect('clothes');
-    }
-
-        // 編集フォームを表示する
+    // 編集フォームを表示する
     public function get_edit($id = null)
     {
         $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
@@ -77,33 +53,7 @@ class Controller_Clothes extends Controller_Base
             throw new \HttpNotFoundException;
         }
 
-        $this->show_form(array(), $this->form_values($row), '', $row['id']);
-    }
-
-    // 編集フォームの送信を受け取る
-    public function post_edit($id = null)
-    {
-        $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
-        if ($row === null) {
-            throw new \HttpNotFoundException;
-        }
-
-        list($data, $errors) = $this->read_input();
-        if (count($errors) > 0) {
-            $this->show_form($errors, \Input::post(), '', $row['id']);
-            return;
-        }
-
-        list($image_path, $image_error) = $this->save_image();
-        if ($image_error !== '') {
-            $this->show_form(array(), \Input::post(), $image_error, $row['id']);
-            return;
-        }
-        // 画像を選ばなかったときは、元の画像のままにする
-        $data['image_path'] = $image_path !== null ? $image_path : $row['image_path'];
-
-        \Model_Clothes::update($row['id'], $this->user_id, $data, array_unique(\Input::post('seasons', array())));
-        \Response::redirect('clothes/view/'.$row['id']);
+        $this->show_form($row['id'], $this->form_values($row));
     }
 
     // 衣類を論理削除する
@@ -116,38 +66,57 @@ class Controller_Clothes extends Controller_Base
         \Response::redirect('clothes');
     }
 
-    // DBの1行を、フォームの初期値の形（送信されたときと同じキー）に直す
+    // DBの1行を、フォームの初期値の形に直す
     private function form_values(array $row)
     {
         return array(
+            'id'               => (string) $row['id'],
             'name'             => $row['name'],
             'category'         => $row['category'],
             'brand'            => (string) $row['brand'],
             'color'            => $row['color'],
             'purchase_date'    => (string) $row['purchase_date'],
-            'purchase_unknown' => $row['purchase_date'] === null ? '1' : '',
-            'memo'             => (string) $row['memo'],
+            'purchase_unknown' => $row['purchase_date'] === null,
             'seasons'          => \Model_Clothes::get_seasons($row['id']),
+            'memo'             => (string) $row['memo'],
+            'image_url'        => $this->present($row)['image_url'],
         );
     }
 
-    private function show_form(array $errors, array $old, $image_error = '', $id = null)
+    // フォームの画面を表示する。値の入力と送信は、JS（Knockout.js）が行う
+    private function show_form($id = null, array $values = array())
     {
-        $is_edit = $id !== null;
+        $is_edit  = $id !== null;
+        $defaults = array(
+            'id'               => '',
+            'name'             => '',
+            'category'         => '',
+            'brand'            => '',
+            'color'            => '',
+            'purchase_date'    => '',
+            'purchase_unknown' => false,
+            'seasons'          => array(),
+            'memo'             => '',
+            'image_url'        => '',
+        );
+        $up = \Config::get('closet.upload');
 
         $this->template->title = $is_edit ? '衣類を編集' : '衣類を登録する';
         $this->template->content = \View::forge('clothes/form', array(
-            'errors'       => $errors,
-            'old'          => $old,
             'categories'   => \Config::get('closet.categories'),
             'colors'       => \Config::get('closet.colors'),
             'seasons'      => \Config::get('closet.seasons'),
-            'image_error'  => $image_error,
-            'is_edit'      => $is_edit,
+            'initial'      => json_encode(array_merge($defaults, $values)),
+            'rules'        => json_encode(array(
+                'extensions' => $up['extensions'],
+                'mimes'      => $up['mimes'],
+                'max_size'   => $up['max_size'],
+            )),
+            'csrf_key'     => \Config::get('security.csrf_token_key', 'fuel_csrf_token'),
+            'csrf_token'   => \Security::fetch_token(),
             'heading'      => $is_edit ? '衣類を編集' : '衣類を登録する',
-            'action'       => $is_edit ? 'clothes/edit/'.$id : 'clothes/create',
             'submit_label' => $is_edit ? '更新' : '登録',
-            'cancel_url'   => $is_edit ? 'clothes/view/'.$id : 'clothes',
+            'back_url'     => \Uri::create($is_edit ? 'clothes/view/'.$id : 'clothes'),
         ));
     }
 
@@ -208,7 +177,7 @@ class Controller_Clothes extends Controller_Base
         return count(array_diff($seasons, $allowed)) === 0;
     }
 
-        // URLのパラメータを検証して、検索条件にする。configにない値は、無視する（条件なし）
+    // URLのパラメータを検証して、検索条件にする。configにない値は、無視する（条件なし）
     private function read_filters()
     {
         $seasons = \Input::get('seasons', array());
@@ -294,5 +263,53 @@ class Controller_Clothes extends Controller_Base
         }
 
         return array($files[0]['saved_as'], '');
+    }
+
+    // JSONのレスポンスを作る。CSRFトークンは、毎回最新のものを添える
+    private function json(array $body, $status = 200)
+    {
+        $body['token'] = \Security::fetch_token();
+
+        return \Response::forge(json_encode($body), $status, array('Content-Type' => 'application/json'));
+    }
+
+    // 登録と更新を、JSONで受け付ける。idがあれば更新、なければ登録
+    public function post_api_save()
+    {
+        $id  = \Input::post('id', '');
+        $row = null;
+        if ($id !== '') {
+            $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
+            if ($row === null) {
+                return $this->json(array('ok' => false, 'errors' => array('_all' => '衣類が見つかりません')), 404);
+            }
+        }
+
+        list($data, $errors) = $this->read_input();
+        $image_path = null;
+        if (count($errors) === 0) {
+            list($image_path, $image_error) = $this->save_image();
+            if ($image_error !== '') {
+                $errors['image'] = $image_error;
+            }
+        }
+        if (count($errors) > 0) {
+            return $this->json(array('ok' => false, 'errors' => $errors), 422);
+        }
+
+        $seasons = array_unique(\Input::post('seasons', array()));
+
+        if ($row === null) {
+            $data['image_path'] = $image_path;
+            $new_id = \Model_Clothes::create($this->user_id, $data, $seasons);
+
+            return $this->json(array('ok' => true, 'id' => $new_id));
+        }
+
+        // 画像を選ばなかったときは、元の画像のままにする
+        $data['image_path'] = $image_path !== null ? $image_path : $row['image_path'];
+        \Model_Clothes::update($row['id'], $this->user_id, $data, $seasons);
+
+        return $this->json(array('ok' => true, 'id' => $row['id']));
     }
 }
