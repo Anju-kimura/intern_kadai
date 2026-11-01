@@ -44,7 +44,11 @@ function ClosetViewModel(apiUrl, loginUrl) {
       })
       .catch((error) => {
         if (error.message === 'unauthorized') return; // 移動中なので、メッセージは出さない
-        if (no === requestNo) self.errorMessage('通信に失敗しました。');
+        if (no !== requestNo) return;
+        // 前の条件の結果が残らないように、一覧を空にする
+        self.items([]);
+        self.count(0);
+        self.errorMessage('通信に失敗しました。');
       })
       .then(() => {
         if (no === requestNo) self.loading(false);

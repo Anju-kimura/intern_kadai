@@ -52,6 +52,9 @@ class Controller_Welcome extends Controller
 	 */
 	public function action_404()
 	{
-		return Response::forge(Presenter::forge('welcome/404'), 404);
+		// Controller_Base を通らないので、ここでもヘッダを付ける
+		return Response::forge(Presenter::forge('welcome/404'), 404, array(
+			'X-Frame-Options' => 'DENY',
+		));
 	}
 }

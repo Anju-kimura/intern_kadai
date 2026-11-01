@@ -44,10 +44,25 @@ class Controller_Base extends \Controller_Template
         exit;
     }
 
+    // 文字列で受け取る欄の値を、まとめて取り出す。
+    // 配列などが送られてきたら、空文字にする（そのままだと、PHPのエラーになるため）
+    protected function post_strings(array $keys)
+    {
+        $values = array();
+        foreach ($keys as $key) {
+            $value = \Input::post($key, '');
+            $values[$key] = is_string($value) ? $value : '';
+        }
+
+        return $values;
+    }
+
     public function after($response)
     {
         $response = parent::after($response);
         $response->set_header('X-Frame-Options', 'DENY');
+        // ログアウト後に「戻る」で、前の画面がキャッシュから表示されないようにする
+        $response->set_header('Cache-Control', 'no-store');
 
         return $response;
     }

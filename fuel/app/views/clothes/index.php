@@ -74,7 +74,10 @@
                 <!-- /ko -->
             </div>
             <div class="card-name" data-bind="text: name"></div>
-            <div class="card-category" data-bind="text: category_label"></div>
+            <div class="card-category">
+                <span class="color-chip color-chip--small" data-bind="style: { background: color_css }, attr: { 'aria-label': color_name, title: color_name }"></span>
+                <span data-bind="text: category_label"></span>
+            </div>
         </a>
     </div>
 
