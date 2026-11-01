@@ -14,7 +14,9 @@
                 <?php echo \Html::anchor('clothes', '衣類'); ?>
                 <span class="site-header__user">
                     <?php echo \Security::htmlentities(\Auth::get('username')); ?>
-                    <?php echo \Html::anchor('user/logout', 'ログアウト'); ?>
+                    <?php echo \Form::open(array('action' => 'user/logout', 'class' => 'logout-form')); ?>
+                        <button type="submit" class="link-button">ログアウト</button>
+                    <?php echo \Form::close(); ?>
                 </span>
             <?php endif; ?>
         </div>
