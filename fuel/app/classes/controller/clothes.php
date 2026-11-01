@@ -17,6 +17,20 @@ class Controller_Clothes extends Controller_Base
         ));
     }
 
+    // 衣類の詳細を表示する
+    public function get_view($id = null)
+    {
+        $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
+        if ($row === null) {
+            throw new \HttpNotFoundException;
+        }
+
+        $item = $this->present($row, \Model_Clothes::get_seasons($row['id']));
+
+        $this->template->title = $item['name'];
+        $this->template->content = \View::forge('clothes/view', array('item' => $item));
+    }
+
     // 登録フォームを表示する
     public function get_create()
     {
@@ -126,6 +140,7 @@ class Controller_Clothes extends Controller_Base
                 return $season_labels[$season];
             }, $seasons)),
             'image_url'      => $row['image_path'] ? \Uri::base(false).'uploads/'.$row['image_path'] : '',
+            'memo'           => (string) $row['memo'],
         );
     }
 
