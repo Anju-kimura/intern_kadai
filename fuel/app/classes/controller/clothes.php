@@ -66,6 +66,51 @@ class Controller_Clothes extends Controller_Base
         \Response::redirect('clothes');
     }
 
+    // 登録と更新を、JSONで受け付ける。idがあれば更新、なければ登録
+    public function post_api_save()
+    {
+        $id  = \Input::post('id', '');
+        $row = null;
+        if ($id !== '') {
+            $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
+            if ($row === null) {
+                return $this->json(array('ok' => false, 'errors' => array('_all' => '衣類が見つかりません')), 404);
+            }
+        }
+
+        list($data, $errors) = $this->read_input();
+        $image_path = null;
+        if (count($errors) === 0) {
+            list($image_path, $image_error) = $this->save_image();
+            if ($image_error !== '') {
+                $errors['image'] = $image_error;
+            }
+        }
+        if (count($errors) > 0) {
+            return $this->json(array('ok' => false, 'errors' => $errors), 422);
+        }
+
+        $seasons = array_unique(\Input::post('seasons', array()));
+
+        if ($row === null) {
+            $data['image_path'] = $image_path;
+            $new_id = \Model_Clothes::create($this->user_id, $data, $seasons);
+
+            return $this->json(array('ok' => true, 'id' => $new_id));
+        }
+
+        // 画像を選ばなかったときは、元の画像のままにする
+        $data['image_path'] = $image_path !== null ? $image_path : $row['image_path'];
+        \Model_Clothes::update($row['id'], $this->user_id, $data, $seasons);
+
+        // 新しい画像に差し替えたときは、古いファイルを消す
+        if ($image_path !== null) {
+            $this->delete_image($row['image_path']);
+        }
+
+        return $this->json(array('ok' => true, 'id' => $row['id']));
+    }
+
     // DBの1行を、フォームの初期値の形に直す
     private function form_values(array $row)
     {
@@ -188,7 +233,7 @@ class Controller_Clothes extends Controller_Base
             'color'    => $this->allowed_key(\Input::get('color'), \Config::get('closet.colors')),
             // configの順に並べて、許可された季節だけを残す
             'seasons'  => array_values(array_intersect(array_keys(\Config::get('closet.seasons')), $seasons)),
-                        'period'   => $this->allowed_key(\Input::get('period'), $this->period_options()),
+            'period'   => $this->allowed_key(\Input::get('period'), $this->period_options()),
             'sort'     => \Input::get('sort') === 'asc' ? 'asc' : 'desc',
         );
     }
@@ -265,6 +310,20 @@ class Controller_Clothes extends Controller_Base
         return array($files[0]['saved_as'], '');
     }
 
+    // 保存済みの画像ファイルを削除する。ファイル名の部分だけを使う
+    private function delete_image($image_path)
+    {
+        if ($image_path === null || $image_path === '') {
+            return;
+        }
+
+        $up   = \Config::get('closet.upload');
+        $file = $up['path'].basename($image_path);
+        if (is_file($file)) {
+            unlink($file);
+        }
+    }
+
     // JSONのレスポンスを作る。CSRFトークンは、毎回最新のものを添える
     private function json(array $body, $status = 200)
     {
@@ -273,43 +332,4 @@ class Controller_Clothes extends Controller_Base
         return \Response::forge(json_encode($body), $status, array('Content-Type' => 'application/json'));
     }
 
-    // 登録と更新を、JSONで受け付ける。idがあれば更新、なければ登録
-    public function post_api_save()
-    {
-        $id  = \Input::post('id', '');
-        $row = null;
-        if ($id !== '') {
-            $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
-            if ($row === null) {
-                return $this->json(array('ok' => false, 'errors' => array('_all' => '衣類が見つかりません')), 404);
-            }
-        }
-
-        list($data, $errors) = $this->read_input();
-        $image_path = null;
-        if (count($errors) === 0) {
-            list($image_path, $image_error) = $this->save_image();
-            if ($image_error !== '') {
-                $errors['image'] = $image_error;
-            }
-        }
-        if (count($errors) > 0) {
-            return $this->json(array('ok' => false, 'errors' => $errors), 422);
-        }
-
-        $seasons = array_unique(\Input::post('seasons', array()));
-
-        if ($row === null) {
-            $data['image_path'] = $image_path;
-            $new_id = \Model_Clothes::create($this->user_id, $data, $seasons);
-
-            return $this->json(array('ok' => true, 'id' => $new_id));
-        }
-
-        // 画像を選ばなかったときは、元の画像のままにする
-        $data['image_path'] = $image_path !== null ? $image_path : $row['image_path'];
-        \Model_Clothes::update($row['id'], $this->user_id, $data, $seasons);
-
-        return $this->json(array('ok' => true, 'id' => $row['id']));
-    }
 }

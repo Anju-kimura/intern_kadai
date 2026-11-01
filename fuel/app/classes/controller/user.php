@@ -69,7 +69,7 @@ class Controller_User extends Controller_Base
         return $val;
     }
 
-     // ログイン画面を表示する
+    // ログイン画面を表示する
     public function get_login()
     {
         $this->show_login('', '');
@@ -82,17 +82,17 @@ class Controller_User extends Controller_Base
         $password = \Input::post('password', '');
 
         if ($email === '' or $password === '') {
-          $this->show_login('メールアドレスとパスワードを入力してください', $email);
-          return;
-     }
-
-     if ( ! \Auth::login($email, $password)) {
-         $this->show_login('メールアドレスまたはパスワードが違います', $email);
-         return;
+            $this->show_login('メールアドレスとパスワードを入力してください', $email);
+            return;
         }
 
-     \Session::instance()->rotate();    // ログイン成功のあと、セッションIDを新しくする
-     \Response::redirect('clothes');
+        if ( ! \Auth::login($email, $password)) {
+            $this->show_login('メールアドレスまたはパスワードが違います', $email);
+            return;
+        }
+
+        \Session::instance()->rotate();    // ログイン成功のあと、セッションIDを新しくする
+        \Response::redirect('clothes');
     }
 
     // ログアウトして、ログイン画面へ戻る

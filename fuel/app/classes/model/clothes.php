@@ -100,8 +100,9 @@ class Model_Clothes
         }
         static::where_period($q, $filters['period']);
 
-        $q->order_by('created_at', $filters['sort'] === 'asc' ? 'asc' : 'desc');
-
+        $direction = $filters['sort'] === 'asc' ? 'asc' : 'desc';
+        $q->order_by('created_at', $direction)->order_by('id', $direction);
+        
         return $q->execute()->as_array();
     }
 

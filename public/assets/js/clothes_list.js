@@ -1,4 +1,4 @@
-function ClosetViewModel(apiUrl) {
+function ClosetViewModel(apiUrl, loginUrl) {
   const self = this;
 
   // 画面に表示していて、変わる値だけを observable にする
@@ -30,6 +30,10 @@ function ClosetViewModel(apiUrl) {
 
     fetch(apiUrl + '?' + q, { credentials: 'same-origin' })
       .then((res) => {
+        if (res.status === 401) {
+          location.href = loginUrl; // ログインが切れたので、ログイン画面へ移動する
+          throw new Error('unauthorized');
+        }
         if (!res.ok) throw new Error();
         return res.json();
       })
@@ -38,7 +42,8 @@ function ClosetViewModel(apiUrl) {
         self.items(data.items);
         self.count(data.count);
       })
-      .catch(() => {
+      .catch((error) => {
+        if (error.message === 'unauthorized') return; // 移動中なので、メッセージは出さない
         if (no === requestNo) self.errorMessage('通信に失敗しました。');
       })
       .then(() => {
@@ -63,6 +68,6 @@ function ClosetViewModel(apiUrl) {
 }
 
 const root = document.getElementById('closet');
-const viewModel = new ClosetViewModel(root.dataset.apiUrl);
+const viewModel = new ClosetViewModel(root.dataset.apiUrl, root.dataset.loginUrl);
 ko.applyBindings(viewModel, root);
 viewModel.load(); // ページを開いたときの最初の一覧
