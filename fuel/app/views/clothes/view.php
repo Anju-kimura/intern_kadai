@@ -40,7 +40,12 @@
 
         <div class="detail-actions">
             <?php echo \Html::anchor('clothes/edit/'.$item['id'], '編集', array('class' => 'btn')); ?>
-            <button type="button" class="btn btn-danger" disabled>削除</button>
+            <?php echo \Form::open(array(
+                'action'   => 'clothes/delete/'.$item['id'],
+                'onsubmit' => "return confirm('この衣類を削除しますか？');",
+            )); ?>
+                <button type="submit" class="btn btn-danger">削除</button>
+            <?php echo \Form::close(); ?>
         </div>
     </div>
 </div>

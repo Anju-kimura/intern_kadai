@@ -239,3 +239,13 @@ body {
   gap: 8px;
   margin-top: 24px;
 }
+
+.detail-actions form {
+  margin: 0;
+}
+
+.btn-danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}

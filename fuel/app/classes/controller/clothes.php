@@ -94,6 +94,16 @@ class Controller_Clothes extends Controller_Base
         \Response::redirect('clothes/view/'.$row['id']);
     }
 
+    // 衣類を論理削除する
+    public function post_delete($id = null)
+    {
+        if (\Model_Clothes::soft_delete((int) $id, $this->user_id) === 0) {
+            throw new \HttpNotFoundException;
+        }
+
+        \Response::redirect('clothes');
+    }
+
     // DBの1行を、フォームの初期値の形（送信されたときと同じキー）に直す
     private function form_values(array $row)
     {

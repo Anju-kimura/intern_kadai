@@ -68,6 +68,17 @@ class Model_Clothes
         }
     }
 
+    // 衣類を論理削除する。戻り値は、更新した行数（0なら、対象がない）
+    public static function soft_delete($id, $user_id)
+    {
+        return \DB::update('clothes')
+            ->set(array('deleted_at' => \DB::expr('NOW()')))
+            ->where('id', $id)
+            ->where('user_id', $user_id)
+            ->where('deleted_at', 'is', null)
+            ->execute();
+    }
+
     // 自分の衣類だけ、削除済みを除いて、新しい順に取得する
     public static function get_list($user_id)
     {
