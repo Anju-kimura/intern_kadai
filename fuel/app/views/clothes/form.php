@@ -1,10 +1,10 @@
-<h1>衣類を登録する</h1>
+<h1><?php echo $heading; ?></h1>
 
 <?php foreach ($errors as $message): ?>
     <p class="error"><?php echo $message; ?></p>
 <?php endforeach; ?>
 
-<?php echo \Form::open(array('action' => 'clothes/create', 'enctype' => 'multipart/form-data')); ?>
+<?php echo \Form::open(array('action' => $action, 'enctype' => 'multipart/form-data')); ?>
 
     <div class="form-row">
         <label for="name">名称（必須）</label>
@@ -69,8 +69,13 @@
         <?php if (!empty($image_error)): ?>
           <p class="error"><?php echo $image_error; ?></p>
         <?php endif; ?>
+        
+        <?php if ($is_edit): ?>
+            <p class="hint">画像を変えない場合は、選ばなくて構いません</p>
+        <?php endif; ?>
     </div>
 
-    <button type="submit" class="btn">登録する</button>
+    <button type="submit" class="btn"><?php echo $submit_label; ?></button>
+    <?php echo \Html::anchor($cancel_url, 'キャンセル', array('class' => 'btn')); ?>
 
 <?php echo \Form::close(); ?>
