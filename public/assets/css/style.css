@@ -263,6 +263,12 @@ body {
   vertical-align: middle;
 }
 
+.color-chip--small {
+  width: 14px;
+  height: 14px;
+  margin-right: 4px;
+}
+
 .detail-actions {
   display: flex;
   gap: 8px;
