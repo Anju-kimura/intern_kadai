@@ -309,3 +309,11 @@ body {
   outline: 2px solid #2563eb;
   outline-offset: 2px;
 }
+
+.loading {
+  color: #666;
+}
+
+.error {
+  color: #b91c1c;
+}
