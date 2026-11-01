@@ -2,27 +2,31 @@
 
 class Controller_Clothes extends Controller_Base
 {
-   // 衣類一覧を表示する（絞り込み・並び替え付き）
+    // 衣類一覧の画面を表示する（一覧のデータは、JSがAPIから取得する）
     public function get_index()
     {
-        $filters = $this->read_filters();
+        $this->template->title = '衣類一覧';
+        $this->template->content = \View::forge('clothes/index', array(
+            'categories' => \Config::get('closet.categories'),
+            'colors'     => \Config::get('closet.colors'),
+            'seasons'    => \Config::get('closet.seasons'),
+            'periods'    => $this->period_options(),
+        ));
+    }
 
+    // 一覧をJSONで返す
+    public function get_api_list()
+    {
         $items = array();
-        foreach (\Model_Clothes::search($this->user_id, $filters) as $row) {
+        foreach (\Model_Clothes::search($this->user_id, $this->read_filters()) as $row) {
             $items[] = $this->present($row);
         }
 
-        $this->template->title = '衣類一覧';
-        $this->template->content = \View::forge('clothes/index', array(
-            'items'       => $items,
-            'filters'     => $filters,
-            'chips'       => $this->category_chips($filters),
-            'colors'      => \Config::get('closet.colors'),
-            'seasons'     => \Config::get('closet.seasons'),
-            'periods'     => $this->period_options(),
-            'is_filtered' => $filters['category'] !== '' || $filters['color'] !== ''
-                || $filters['period'] !== '' || count($filters['seasons']) > 0,
-        ));
+        return \Response::forge(
+            json_encode(array('count' => count($items), 'items' => $items)),
+            200,
+            array('Content-Type' => 'application/json')
+        );
     }
 
     // 衣類の詳細を表示する
@@ -235,28 +239,6 @@ class Controller_Clothes extends Controller_Base
         return $periods;
     }
 
-    // カテゴリのボタンを作る。ほかの条件は保ったまま、カテゴリだけを切り替えるリンクにする
-    private function category_chips(array $filters)
-    {
-        $options = array('' => 'すべて') + \Config::get('closet.categories');
-
-        $chips = array();
-        foreach ($options as $key => $label) {
-            $params = array_merge($filters, array('category' => $key));
-            $params = array_filter($params, function ($value) {
-                return $value !== '' && $value !== array();
-            });
-
-            $chips[] = array(
-                'label'  => $label,
-                'url'    => \Uri::create('clothes', array(), $params),
-                'active' => $filters['category'] === (string) $key,
-            );
-        }
-
-        return $chips;
-    }
-
     // DBの値を、画面に出す形に整える（一覧・詳細・Step 8のJSONで使い回す）
     private function present(array $row, array $seasons = array())
     {
@@ -277,6 +259,7 @@ class Controller_Clothes extends Controller_Base
             }, $seasons)),
             'image_url'      => $row['image_path'] ? \Uri::base(false).'uploads/'.$row['image_path'] : '',
             'memo'           => (string) $row['memo'],
+            'view_url'       => \Uri::create('clothes/view/'.$row['id']),
         );
     }
 
