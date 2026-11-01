@@ -79,14 +79,58 @@ class Model_Clothes
             ->execute();
     }
 
-    // 自分の衣類だけ、削除済みを除いて、新しい順に取得する
-    public static function get_list($user_id)
+    // 条件に合う、自分の衣類を取得する。条件は、すべてANDで足していく
+    public static function search($user_id, array $filters)
     {
-        return \DB::select()->from('clothes')
+        $q = \DB::select()->from('clothes')
             ->where('user_id', $user_id)
-            ->where('deleted_at', 'is', null)
-            ->order_by('created_at', 'desc')
-            ->execute()->as_array();
+            ->where('deleted_at', 'is', null);
+
+        if ($filters['category'] !== '') {
+            $q->where('category', $filters['category']);
+        }
+        if ($filters['color'] !== '') {
+            $q->where('color', $filters['color']);
+        }
+        if (count($filters['seasons']) > 0) {
+            // JOINだと「春・夏」の衣類が2行になるので、サブクエリで絞る
+            $sub = \DB::select('clothing_id')->from('clothing_seasons')
+                ->where('season', 'in', $filters['seasons']);
+            $q->where('id', 'in', $sub);
+        }
+        static::where_period($q, $filters['period']);
+
+        $q->order_by('created_at', $filters['sort'] === 'asc' ? 'asc' : 'desc');
+
+        return $q->execute()->as_array();
+    }
+
+    // 購入時期の条件を、日付の範囲として足す
+    private static function where_period($q, $period)
+    {
+        $six_months  = \DB::expr('DATE_SUB(CURDATE(), INTERVAL 6 MONTH)');
+        $one_year    = \DB::expr('DATE_SUB(CURDATE(), INTERVAL 1 YEAR)');
+        $three_years = \DB::expr('DATE_SUB(CURDATE(), INTERVAL 3 YEAR)');
+
+        switch ($period) {
+            case 'under_6m':
+                $q->where('purchase_date', '>', $six_months);
+                break;
+            case '6m_to_1y':
+                $q->where('purchase_date', '<=', $six_months)
+                  ->where('purchase_date', '>', $one_year);
+                break;
+            case '1y_to_3y':
+                $q->where('purchase_date', '<=', $one_year)
+                  ->where('purchase_date', '>', $three_years);
+                break;
+            case 'over_3y':
+                $q->where('purchase_date', '<=', $three_years);
+                break;
+            case 'unknown':
+                $q->where('purchase_date', 'is', null);
+                break;
+        }
     }
 
     // 自分の、削除されていない衣類を、1件取得する。なければ null
