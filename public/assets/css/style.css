@@ -317,3 +317,9 @@ body {
 .error {
   color: #b91c1c;
 }
+
+.image-preview img {
+  max-width: 160px;
+  margin-top: 8px;
+  border-radius: 8px;
+}
