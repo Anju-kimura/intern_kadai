@@ -1,0 +1,342 @@
+:root {
+  --color-header: #AACDD1;   /* ヘッダーの薄い青緑 */
+  --color-main:   #0F5A5E;   /* ボタンや文字の濃い青緑 */
+  --color-text:   #1F2D2E;
+  --color-border: #B7D3D6;
+  --color-error:  #C62828;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  color: var(--color-text);
+  background: #fff;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Noto Sans JP", sans-serif;
+}
+
+.site-header { background: var(--color-header); }
+.site-header__inner {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+.site-header__logo { color: var(--color-main); font-size: 24px; font-weight: bold; }
+.site-header__user { margin-left: auto; }
+.site-header a { color: var(--color-main); }
+.flash {
+  margin: 16px 0;
+  padding: 12px 16px;
+  border: 1px solid var(--color-border);
+  border-radius: 4px;
+  background: #EAF4F5;
+  color: var(--color-main);
+}
+.logout-form { display: inline; }
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-main);
+  font: inherit;
+  cursor: pointer;
+}
+
+.container { max-width: 960px; margin: 0 auto; padding: 24px; }
+
+.btn {
+  display: inline-block;
+  padding: 10px 20px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--color-main);
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.form-field { margin-bottom: 20px; }
+.form-field label { display: block; margin-bottom: 6px; font-size: 14px; }
+.form-field input[type="text"],
+.form-field input[type="email"],
+.form-field input[type="password"] {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid var(--color-main);
+  border-radius: 2px;
+}
+.form-error { color: var(--color-error); font-size: 13px; }
+
+.color-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.color-dot {
+  cursor: pointer;
+}
+
+.color-dot input {
+  position: absolute;
+  opacity: 0;
+}
+
+.color-dot span {
+  display: block;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 2px solid #ddd;
+}
+
+.color-dot input:checked + span {
+  border-color: #333;
+  box-shadow: 0 0 0 2px #fff inset;
+}
+
+.page-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.count {
+  font-size: 14px;
+  color: #666;
+}
+
+.category-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 16px 0;
+}
+
+ .chip {
+  padding: 6px 14px;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  background: #fff;
+  cursor: pointer;
+  color: inherit;
+  text-decoration: none;
+}
+
+.chip.is-active {
+  background: #333;
+  color: #fff;
+  border-color: #333;
+}
+
+.filter-area {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  margin-bottom: 16px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  font-size: 14px;
+}
+
+.filter-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  display: block;
+  padding: 8px;
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.card-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 140px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-name {
+  margin-top: 8px;
+  font-weight: bold;
+}
+
+.card-category {
+  font-size: 13px;
+  color: #666;
+}
+
+.empty {
+  padding: 32px 0;
+  text-align: center;
+  color: #888;
+}
+
+.fab {
+  position: fixed;
+  right: 24px;
+  bottom: 24px;
+  width: 56px;
+  height: 56px;
+  line-height: 56px;
+  text-align: center;
+  font-size: 28px;
+  color: #fff;
+  background: #333;
+  border-radius: 50%;
+  text-decoration: none;
+}
+
+.detail {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 24px;
+}
+
+.detail-image {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 280px;
+  height: 280px;
+  background: #f3f4f6;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.detail-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.detail-body {
+  flex: 1;
+  min-width: 260px;
+}
+
+.detail-list {
+  display: grid;
+  grid-template-columns: 100px 1fr;
+  gap: 12px 8px;
+}
+
+.detail-list dt {
+  color: #666;
+}
+
+.detail-list dd {
+  margin: 0;
+}
+
+.color-chip {
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+  vertical-align: middle;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 24px;
+}
+
+.detail-actions form {
+  margin: 0;
+}
+
+.btn-danger {
+  background: #dc2626;
+  border-color: #dc2626;
+  color: #fff;
+}
+
+.color-choice {
+  position: relative;
+  display: inline-flex;
+  cursor: pointer;
+}
+
+/* ラジオ本体は隠して、丸と「すべて」を見た目にする */
+.color-choice input {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.color-swatch {
+  display: inline-block;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #ccc;
+  border-radius: 50%;
+}
+
+.color-all {
+  display: inline-block;
+  padding: 4px 10px;
+  border: 1px solid #ccc;
+  border-radius: 999px;
+  font-size: 13px;
+}
+
+/* 選択中の表示 */
+.color-choice input:checked + .color-swatch {
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333;
+}
+
+.color-choice input:checked + .color-all {
+  background: #333;
+  border-color: #333;
+  color: #fff;
+}
+
+/* キーボードで操作したときの目印 */
+.color-choice input:focus-visible + .color-swatch,
+.color-choice input:focus-visible + .color-all {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+.loading {
+  color: #666;
+}
+
+.error {
+  color: #b91c1c;
+}
+
+.image-preview img {
+  max-width: 160px;
+  margin-top: 8px;
+  border-radius: 8px;
+}
