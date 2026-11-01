@@ -22,6 +22,11 @@
         </div>
     </header>
     <main class="container">
+        <?php // flashは、次の画面で1回だけ読める、sessionの値。読むと消える ?>
+        <?php $flash = \Session::get_flash('success'); ?>
+        <?php if ($flash): ?>
+            <p class="flash" role="status"><?php echo \Security::htmlentities($flash); ?></p>
+        <?php endif; ?>
         <?php echo $content; ?>
     </main>
 </body>
