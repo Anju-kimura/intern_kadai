@@ -42,4 +42,26 @@ class Model_Clothes
             ->order_by('created_at', 'desc')
             ->execute()->as_array();
     }
+
+    // 自分の、削除されていない衣類を、1件取得する。なければ null
+    public static function find_for_user($id, $user_id)
+    {
+        $rows = \DB::select()->from('clothes')
+            ->where('id', $id)
+            ->where('user_id', $user_id)
+            ->where('deleted_at', 'is', null)
+            ->execute()->as_array();
+
+        return count($rows) === 0 ? null : $rows[0];
+    }
+
+    // その衣類の季節（キーの配列）を取得する
+    public static function get_seasons($clothing_id)
+    {
+        $rows = \DB::select('season')->from('clothing_seasons')
+            ->where('clothing_id', $clothing_id)
+            ->execute()->as_array();
+
+        return array_column($rows, 'season');
+    }
 }
