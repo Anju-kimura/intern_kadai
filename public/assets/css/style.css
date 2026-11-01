@@ -27,6 +27,15 @@ body {
 .site-header__logo { color: var(--color-main); font-size: 24px; font-weight: bold; }
 .site-header__user { margin-left: auto; }
 .site-header a { color: var(--color-main); }
+.logout-form { display: inline; }
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--color-main);
+  font: inherit;
+  cursor: pointer;
+}
 
 .container { max-width: 960px; margin: 0 auto; padding: 24px; }
 

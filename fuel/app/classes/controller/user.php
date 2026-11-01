@@ -5,6 +5,16 @@ class Controller_User extends Controller_Base
     // ログインなしで開いてよいアクション
     protected $public_actions = array('login', 'signup');
 
+    public function before()
+    {
+        parent::before();
+
+        // ログイン中に、ログイン・新規登録の画面を開いたら、一覧へ移動する
+        if (\Auth::check() and in_array(\Request::active()->action, $this->public_actions, true)) {
+            \Response::redirect('clothes');
+        }
+    }
+
     // 新規登録画面を表示する
     public function get_signup()
     {
@@ -95,8 +105,8 @@ class Controller_User extends Controller_Base
         \Response::redirect('clothes');
     }
 
-    // ログアウトして、ログイン画面へ戻る
-    public function action_logout()
+    // ログアウトして、ログイン画面へ戻る（POSTだけ受け付ける）
+    public function post_logout()
     {
         \Auth::logout();
         \Response::redirect('user/login');
