@@ -33,6 +33,41 @@ class Model_Clothes
         return $clothing_id;
     }
 
+    // 衣類を更新する。季節は、削除して入れ直す
+    public static function update($id, $user_id, array $data, array $seasons)
+    {
+        \DB::start_transaction();
+        try {
+            \DB::update('clothes')->set(array(
+                'name'          => $data['name'],
+                'category'      => $data['category'],
+                'brand'         => $data['brand'],
+                'color'         => $data['color'],
+                'purchase_date' => $data['purchase_date'],
+                'memo'          => $data['memo'],
+                'image_path'    => $data['image_path'],
+                'updated_at'    => \DB::expr('NOW()'),
+            ))
+                ->where('id', $id)
+                ->where('user_id', $user_id)
+                ->where('deleted_at', 'is', null)
+                ->execute();
+
+            \DB::delete('clothing_seasons')->where('clothing_id', $id)->execute();
+            foreach ($seasons as $season) {
+                \DB::insert('clothing_seasons')->set(array(
+                    'clothing_id' => $id,
+                    'season'      => $season,
+                ))->execute();
+            }
+
+            \DB::commit_transaction();
+        } catch (\Exception $e) {
+            \DB::rollback_transaction();
+            throw $e;
+        }
+    }
+
     // 自分の衣類だけ、削除済みを除いて、新しい順に取得する
     public static function get_list($user_id)
     {
