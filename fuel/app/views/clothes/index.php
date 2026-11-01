@@ -1,4 +1,6 @@
-<div id="closet" data-api-url="<?php echo \Uri::create('clothes/api_list'); ?>">
+<div id="closet"
+     data-api-url="<?php echo \Uri::create('clothes/api_list'); ?>"
+     data-login-url="<?php echo \Uri::create('user/login'); ?>">
     <div class="page-head">
         <h1>衣類一覧 <span class="count"><span data-bind="text: count"></span>件</span></h1>
         <?php echo \Html::anchor('clothes/create', '＋ 衣類を追加', array('class' => 'btn')); ?>
