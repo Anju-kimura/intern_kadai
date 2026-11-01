@@ -24,10 +24,11 @@ class Controller_User extends Controller_Base
     // 新規登録フォームの送信を受け取る
     public function post_signup()
     {
-        $input = \Input::post();
+        // 配列などが送られてきても、空文字にしてから検証する
+        $input = $this->post_strings(array('username', 'email', 'password', 'password_confirm'));
 
         $val = $this->signup_validation();
-        if ( ! $val->run()) {
+        if ( ! $val->run($input)) {
             $this->show_signup($val->error_message(), $input);
             return;
         }
@@ -89,8 +90,9 @@ class Controller_User extends Controller_Base
     // ログインフォームの送信を受け取る
     public function post_login()
     {
-        $email = \Input::post('email', '');
-        $password = \Input::post('password', '');
+        $input = $this->post_strings(array('email', 'password'));
+        $email = $input['email'];
+        $password = $input['password'];
 
         if ($email === '' or $password === '') {
             $this->show_login('メールアドレスとパスワードを入力してください', $email);

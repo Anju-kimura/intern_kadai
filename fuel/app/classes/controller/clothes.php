@@ -70,7 +70,8 @@ class Controller_Clothes extends Controller_Base
     // 登録と更新を、JSONで受け付ける。idがあれば更新、なければ登録
     public function post_api_save()
     {
-        $id  = \Input::post('id', '');
+        $posted = $this->post_strings(array('id'));
+        $id  = $posted['id'];
         $row = null;
         if ($id !== '') {
             $row = \Model_Clothes::find_for_user((int) $id, $this->user_id);
@@ -175,7 +176,9 @@ class Controller_Clothes extends Controller_Base
     private function read_input()
     {
         $val = $this->validation();
-        if ( ! $val->run()) {
+        // 配列などが送られてきても、空文字にしてから検証する
+        $input = $this->post_strings(array('name', 'category', 'brand', 'color', 'purchase_date', 'memo'));
+        if ( ! $val->run($input)) {
             return array(array(), $val->error_message());
         }
         if ( ! $this->valid_seasons(\Input::post('seasons', array()))) {
@@ -224,8 +227,14 @@ class Controller_Clothes extends Controller_Base
             return false;
         }
         $allowed = array_keys(\Config::get('closet.seasons'));
+        foreach ($seasons as $season) {
+            // seasons[][] のように、配列の中に配列が送られてきたときも、エラーにする
+            if ( ! is_string($season) || ! in_array($season, $allowed, true)) {
+                return false;
+            }
+        }
 
-        return count(array_diff($seasons, $allowed)) === 0;
+        return true;
     }
 
     // URLのパラメータを検証して、検索条件にする。configにない値は、無視する（条件なし）
@@ -339,7 +348,7 @@ class Controller_Clothes extends Controller_Base
             $body['token'] = \Security::fetch_token();
         }
 
-        return \Response::forge(json_encode($body), $status, array('Content-Type' => 'application/json'));
+        return \Response::forge(json_encode($body), $status, array('Content-Type' => 'application/json; charset=utf-8'));
     }
 
 }
